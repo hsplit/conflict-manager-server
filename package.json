@@ -1,10 +1,11 @@
 {
   "name": "conflict-manager-server",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "git conflict manager server",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon start"
+    "dev": "nodemon start",
+    "start": "node start"
   },
   "keywords": [
     "git",
