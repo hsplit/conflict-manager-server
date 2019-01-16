@@ -1,5 +1,6 @@
+const conflictManaget = require('../../services/conflictManager')
+
 module.exports = (request, response) => {
-  const { files, user } = request.body
-  console.log({ files, user })
-  response.json(user)
+  const conflicts = conflictManaget.getConflictsForUser(request.body)
+  response.json(conflicts)
 }
