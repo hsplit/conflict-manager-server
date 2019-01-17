@@ -1,5 +1,5 @@
-const getConflicts = require('./getConflicts')
+const getConflictsForUser = require('./getConflictsForUser')
 
 module.exports = {
-  getConflicts,
+  getConflictsForUser,
 }
