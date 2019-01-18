@@ -1,12 +1,13 @@
 const API = window.origin || 'http://localhost:5010'
 const API_REQUESTS = {
   getConflicts: `${API}/getconflicts`,
+  getUsersFiles: `${API}/getusersfiles`,
 }
 
 const HTML = {
   longPollStatus,
   conflictsTable,
-  getUsersFiles,
+  getUsersFilesBtn,
   usersFilesTime,
   usersFiles,
 }
@@ -96,8 +97,21 @@ const connectToServer = () => {
 }
 
 const getUsersFiles = () => {
-  HTML.usersFilesTime.innerText = 'Last update: ' + getCurrentTime()
+  const errorFiles = () => {
+    HTML.usersFilesTime.innerText = 'Lost connection'
+    HTML.usersFiles.innerHTML = ''
+  }
+
+  fetch(API_REQUESTS.getUsersFiles).then(response => response.json()).then(errorHanlder).then(data => {
+    const { usersFiles } = data
+    const getHTMLString = ({ userName, files }) => `<div><b>${userName}:</b><p>` + files.join('<br>') + '</p></div>'
+
+    HTML.usersFilesTime.innerText = 'Last update: ' + getCurrentTime()
+    HTML.usersFiles.innerHTML = '<br>' + (usersFiles.length
+      ? usersFiles.map(getHTMLString).join('')
+      : 'Have user files')
+  }).catch(err => console.warn('getCurrentConflicts', err) || errorFiles(err))
 }
 
-HTML.getUsersFiles.addEventListener('click', getUsersFiles)
+HTML.getUsersFilesBtn.addEventListener('click', getUsersFiles)
 connectToServer()

@@ -51,7 +51,13 @@ const getConflicts = () => [..._storage.entries()].reduceRight(
   },
   [])
 
+const getUsersFiles = () => [..._storage.entries()].map(([user, { paths }]) => {
+  const [userName] = user.split('#')
+  return { userName, files: paths }
+})
+
 module.exports = {
   getConflictsForUser,
   getConflicts,
+  getUsersFiles,
 }

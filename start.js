@@ -18,6 +18,7 @@ app.get('/favicon.ico', (request, response) => response.end(''))
 
 // Get
 app.get('/getconflicts', api.get.getConflicts)
+app.get('/getusersfiles', api.get.getUsersFiles)
 
 // Post
 app.post('/getconflictsforuser', jsonParser, api.post.getConflictsForUser)
