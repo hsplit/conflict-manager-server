@@ -2,18 +2,21 @@ const { OUTDATED_TIME } = require('../constants')
 
 const _storage = new Map()
 
+// TODO: remove fake data, turn on _relevantDataObserver
+_storage.set('A#23', { paths: ['D:\\ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\text1.txt'] })
+_storage.set('B#23', { paths: ['D:\\ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\text1.txt', 'text2.txt'] })
+_storage.set('C#23', { paths: ['text2.txt'] })
+
 const _relevantDataObserver = () => {
-  if (!_storage.size) {
-    return
-  }
+  if (!_storage.size) { return }
   let now = Date.now()
 
   void [..._storage.entries()].forEach(([user, { lastUpdate }]) => {
-    (now - lastUpdate > 10000) && _storage.delete(user)
+    (now - lastUpdate > OUTDATED_TIME) && _storage.delete(user)
   })
 }
 
-setInterval(_relevantDataObserver, OUTDATED_TIME)
+// setInterval(_relevantDataObserver, OUTDATED_TIME)
 
 const getConflictsForUser = ({ files, user }) => {
   let filePaths = files.map(({ path }) => path)
@@ -42,9 +45,9 @@ const getConflicts = () => [..._storage.entries()].reduceRight(
   (acc, [user, { paths }], i, arr) => {
     let userWithConflicts = {
       userName: user.split('#')[0],
-      conflictsWithOther: _getConflictedFiles(paths, arr.slice(0, arr.length - 1).map(el => el[1].paths))
+      conflictsWithOther: _getConflictedFiles(paths, arr.slice(0, i).map(el => el[1].paths))
     }
-    return [userWithConflicts, ...arr]
+    return [userWithConflicts, ...acc]
   },
   [])
 

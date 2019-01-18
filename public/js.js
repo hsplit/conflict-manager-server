@@ -6,6 +6,9 @@ const API_REQUESTS = {
 const HTML = {
   longPollStatus,
   conflictsTable,
+  getUsersFiles,
+  usersFilesTime,
+  usersFiles,
 }
 
 const showError = message => {
@@ -28,7 +31,49 @@ const getCurrentTime = () => {
 }
 
 const getTableConflictsHTML = conflicts => {
+  const getEmptyCell = () => {
+    return '<div class="table-cell empty-cell"></div>'
+  }
+  const getNameCell = userName => {
+    return `<div class="table-cell name-cell">${userName}</div>`
+  }
 
+  const getFirstRow = () => {
+    let names = conflicts.map(({ userName }) => userName )
+    return '<div class="table-row">' + getEmptyCell() + names.map(getNameCell).join('') + '</div>'
+  }
+
+  const getConflictCell = paths => {
+    if (!paths) {
+      return getEmptyCell()
+    }
+    const gitFileName = path => path.split('\\').reverse()[0]
+    return '<div class="table-cell conflict-cell">' + paths.map(gitFileName).join('<br><br>') + '</div>'
+  }
+
+  const getRow = n => {
+    let nameCell = getNameCell(conflicts[n].userName)
+    let cells = ''
+    for (let i = 0; i < conflicts.length; i++) {
+      cells += getConflictCell(conflicts[n].conflictsWithOther[i])
+    }
+    return '<div class="table-row">' + nameCell + cells + '</div>'
+  }
+
+  const getConflictsRows = () => {
+    let rows = ''
+    for (let i = 1; i < conflicts.length; i++) {
+      rows += getRow(i)
+    }
+    return rows
+  }
+
+  return `
+    <div class="table-wrapper">
+        ${getFirstRow()}
+        ${getConflictsRows()}
+    </div>
+  `
 }
 
 const getCurrentConflicts = initialMessage => {
@@ -36,14 +81,13 @@ const getCurrentConflicts = initialMessage => {
     if (initialMessage) { HTML.longPollStatus.innerText = initialMessage }
     const { conflicts } = data
 
-    console.log({ conflicts })
-    let timeInfo = 'Last update: ' + getCurrentTime() + '<br>'
+    let timeInfo = 'Last update: ' + getCurrentTime() + '<br><br>'
     HTML.conflictsTable.innerHTML = timeInfo + (conflicts.length < 2
       ? `<p>Users have no conflicts</p>`
       : getTableConflictsHTML(conflicts))
 
     getCurrentConflicts()
-  }).catch(err => console.warn('getCurrentConflicts', err))
+  }).catch(err => console.warn('getCurrentConflicts', err) || showError('Lost connection'))
 }
 
 const connectToServer = () => {
@@ -51,5 +95,9 @@ const connectToServer = () => {
   getCurrentConflicts('Connected')
 }
 
-// TODO: button with current working files for each users
+const getUsersFiles = () => {
+  HTML.usersFilesTime.innerText = 'Last update: ' + getCurrentTime()
+}
+
+HTML.getUsersFiles.addEventListener('click', getUsersFiles)
 connectToServer()

@@ -9,14 +9,14 @@ section:first-of-type {
 }
 
 .get-files {
+    user-select: none;
     position: relative;
     overflow: hidden;
-    width: 165px;
-    height: 20px;
+    width: 110px;
+    height: 12px;
     background: linear-gradient(to right, #ffb347, #ffcc33);
     border-radius: 3px;
     padding: 8px 4px;
-    font-size: 19px;
     margin-right: 20px;
 }
 .get-files span {
@@ -29,4 +29,36 @@ section:first-of-type {
     width: 100%;
     height: 100%;
     cursor: pointer;
+}
+
+.table-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid #fff;
+    display: inline-block;
+}
+.table-cell {
+    box-sizing: border-box;
+    width: 200px;
+    border: 1px solid #fff;
+    overflow: hidden;
+    height: 100%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.empty-cell {
+    background: linear-gradient(to right, #2193b0, #6dd5ed);
+}
+.table-row {
+    height: 85px;
+    display: flex;
+}
+.name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.conflict-cell {
+    padding: 10px;
+    word-break: break-all;
 }
