@@ -2,11 +2,6 @@ const { OUTDATED_TIME } = require('../constants')
 
 const _storage = new Map()
 
-// TODO: remove fake data, turn on _relevantDataObserver
-_storage.set('A#23', { paths: ['ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\file 1.txt'] })
-_storage.set('B#23', { paths: ['ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\file 1.txt', 'text2.txt'] })
-_storage.set('C#23', { paths: ['text2.txt'] })
-
 const _relevantDataObserver = () => {
   if (!_storage.size) { return }
   let now = Date.now()
@@ -16,7 +11,7 @@ const _relevantDataObserver = () => {
   })
 }
 
-// setInterval(_relevantDataObserver, OUTDATED_TIME)
+setInterval(_relevantDataObserver, OUTDATED_TIME)
 
 const getConflictsForUser = ({ files, user }) => {
   let filePaths = files.map(({ path }) => path)
