@@ -4,8 +4,8 @@
   "description": "git conflict manager server",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon start",
-    "start": "node start"
+    "dev": "nodemon start --port=5011",
+    "start": "node start --port=5011"
   },
   "keywords": [
     "git",
