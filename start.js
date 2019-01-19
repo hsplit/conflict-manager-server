@@ -22,6 +22,7 @@ app.get('/getusersfiles', api.get.getUsersFiles)
 
 // Post
 app.post('/getconflictsforuser', jsonParser, api.post.getConflictsForUser)
+app.post('/checkfile', jsonParser, api.post.checkFile)
 
 // Start
 app.listen(port, () => console.log(`start on http://localhost:${port}/`) || opn(`http://localhost:${port}/`))

@@ -3,8 +3,8 @@ const { OUTDATED_TIME } = require('../constants')
 const _storage = new Map()
 
 // TODO: remove fake data, turn on _relevantDataObserver
-_storage.set('A#23', { paths: ['D:\\ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\text1.txt'] })
-_storage.set('B#23', { paths: ['D:\\ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\text1.txt', 'text2.txt'] })
+_storage.set('A#23', { paths: ['ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\file 1.txt'] })
+_storage.set('B#23', { paths: ['ForteGroup\\PlanCreator\\src\\services\\formula\\parsers\\helper\\file 1.txt', 'text2.txt'] })
 _storage.set('C#23', { paths: ['text2.txt'] })
 
 const _relevantDataObserver = () => {
@@ -56,8 +56,22 @@ const getUsersFiles = () => [..._storage.entries()].map(([user, { paths }]) => {
   return { userName, files: paths }
 })
 
+const checkFile = ({ fileName }) => ({
+  fileName,
+  usersFiles: [..._storage.entries()].reduce((acc, [user, { paths }]) => {
+    let userFiles = paths.filter(path => path.split('\\').reverse()[0] === fileName)
+    if (userFiles.length) {
+      const [userName] = user.split('#')
+      return [...acc, { userName, files: userFiles }]
+    }
+    return acc
+    },
+    []),
+})
+
 module.exports = {
   getConflictsForUser,
   getConflicts,
   getUsersFiles,
+  checkFile,
 }
