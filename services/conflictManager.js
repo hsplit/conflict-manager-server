@@ -1,3 +1,5 @@
+const mongoDB = require('./mongoDB')
+
 const { OUTDATED_TIME } = require('../constants')
 
 const _storage = new Map()
@@ -15,6 +17,7 @@ setInterval(_relevantDataObserver, OUTDATED_TIME)
 
 const getConflictsForUser = ({ files, user }) => {
   let filePaths = files.map(({ path }) => path)
+  mongoDB.addFiles({ files: filePaths, user })
 
   _storage.delete(user)
 

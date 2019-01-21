@@ -1,4 +1,4 @@
-let ports = [5011, 5111, 5211]
+let ports = [5010, 5110, 5210]
 let argv = require('minimist')(process.argv.slice(2))
 let port = argv.port || ports[0]
 

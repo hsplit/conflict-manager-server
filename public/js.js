@@ -82,10 +82,10 @@ const getCurrentConflicts = initialMessage => {
     if (initialMessage) { HTML.longPollStatus.innerText = initialMessage }
     const { conflicts } = data
 
-    let timeInfo = 'Last update: ' + getCurrentTime() + '<br><br>'
+    let timeInfo = 'Last update: ' + getCurrentTime() + '<br>'
     HTML.conflictsTable.innerHTML = timeInfo + (conflicts.length < 2
       ? `<p>Users have no conflicts</p>`
-      : getTableConflictsHTML(conflicts))
+      : '<br>' + getTableConflictsHTML(conflicts))
 
     getCurrentConflicts()
   }).catch(err => console.warn('getCurrentConflicts', err) || showError('Lost connection'))
@@ -109,7 +109,7 @@ const getUsersFiles = () => {
     HTML.usersFilesTime.innerText = 'Last update: ' + getCurrentTime()
     HTML.usersFiles.innerHTML = '<br>' + (usersFiles.length
       ? usersFiles.map(getHTMLString).join('')
-      : 'Have user files')
+      : 'Have no users files')
   }).catch(err => console.warn('getCurrentConflicts', err) || errorFiles(err))
 }
 

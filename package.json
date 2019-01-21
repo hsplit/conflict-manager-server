@@ -1,11 +1,11 @@
 {
   "name": "conflict-manager-server",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "git conflict manager server",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon start --port=5011",
-    "start": "node start --port=5011"
+    "dev": "nodemon start --port=5010",
+    "start": "node start --port=5010"
   },
   "keywords": [
     "git",
@@ -17,6 +17,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "minimist": "^1.2.0",
+    "mongodb": "^3.1.12",
     "opn": "^5.4.0"
   },
   "devDependencies": {
