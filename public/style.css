@@ -8,6 +8,10 @@ p {
   margin-left: 10px;
 }
 
+a {
+  color: #ffffff;
+}
+
 section:first-of-type {
   text-align: center;
 }

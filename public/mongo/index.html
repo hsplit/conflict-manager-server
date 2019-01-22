@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conflict Manager</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <section>
+        <a href="/"><h2>Conflict Manager Server</h2></a>
+        <h3>MongoDB</h3>
+    </section>
+
+    <hr>
+
+    <section class="choose-section">
+        <h2>Check file for date</h2>
+        <div class="content">
+            <div id="chooseFileBtn" class="choose">
+                <span>Choose folder</span>
+            </div>
+            <div>
+                <input id="fileInput" class="chooseInput" placeholder="end of file path (root is project folder)">
+                <input id="fileDate" type="date">
+            </div>
+        </div>
+        <div id="fileAnswer">Not chosen (for ex. - D:\working project)</div>
+    </section>
+
+    <hr>
+</body>
+<script src="js.js"></script>
+</html>

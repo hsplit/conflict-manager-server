@@ -25,6 +25,7 @@ app.get('/getusersfiles', api.get.getUsersFiles)
 // Post
 app.post('/getconflictsforuser', jsonParser, api.post.getConflictsForUser)
 app.post('/checkfile', jsonParser, api.post.checkFile)
+app.post('/checkfileforday', jsonParser, api.post.checkFileForDay)
 
 // Start
 const startServer = _port => {
