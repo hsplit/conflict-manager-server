@@ -13,7 +13,7 @@ const app = express()
 const jsonParser = bodyParser.json()
 
 // app.use(cors())
-// TODO: mongoDB chat sockets
+// TODO: chat sockets
 
 app.use(express.static(__dirname + '/public'))
 app.get('/favicon.ico', (request, response) => response.end(''))
@@ -26,6 +26,8 @@ app.get('/getusersfiles', api.get.getUsersFiles)
 app.post('/getconflictsforuser', jsonParser, api.post.getConflictsForUser)
 app.post('/checkfile', jsonParser, api.post.checkFile)
 app.post('/checkfileforday', jsonParser, api.post.checkFileForDay)
+app.post('/checkusersforday', jsonParser, api.post.checkUsersForDay)
+app.post('/getconflictsforday', jsonParser, api.post.getConflictsForDay)
 
 // Start
 const startServer = _port => {

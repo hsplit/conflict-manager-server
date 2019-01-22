@@ -53,10 +53,42 @@ a {
   outline: none;
 }
 
-#fileDate {
+.fileDate {
   height: 20px;
   padding: 8px 10px;
   font-size: 19px;
   border: 0;
   outline: none;
+}
+
+.table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #fff;
+  display: inline-block;
+}
+.table-cell {
+  box-sizing: border-box;
+  width: 200px;
+  border: 1px solid #fff;
+  overflow: hidden;
+  height: 100%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.empty-cell {
+  background: linear-gradient(to right, #2193b0, #6dd5ed);
+}
+.table-row {
+  height: 85px;
+  display: flex;
+}
+.name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.conflict-cell {
+  padding: 10px;
+  word-break: break-all;
 }

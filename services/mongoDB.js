@@ -1,3 +1,4 @@
+const getConflictsHelper = require('../helpers/getConflicts')
 const mongoClient = require('mongodb').MongoClient
 
 const MONGODB_URL = 'mongodb://localhost:27017/'
@@ -86,6 +87,7 @@ const checkFileForDay = ({ file: endOfPath, date }, response) => {
     if (err) {
       console.log('Error on checkFileForDay, connect to mongoClient')
       console.log(err)
+      done({ error: 'Error on checkFileForDay, connect to mongoClient' })
       return
     }
     const dataBase = client.db(DB_NAME)
@@ -113,7 +115,90 @@ const checkFileForDay = ({ file: endOfPath, date }, response) => {
   })
 }
 
+const checkUsersForDay = ({ date }, response) => {
+  const done = data => response.json(data)
+  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+    if (err) {
+      console.log('Error on checkUsersForDay, connect to mongoClient')
+      console.log(err)
+      done({ error: 'Error on checkUsersForDay, connect to mongoClient' })
+      return
+    }
+    const dataBase = client.db(DB_NAME)
+    const collection = dataBase.collection(date)
+
+    collection.find().toArray((err, results) => {
+      if (err) {
+        console.log('Error on checkUsersForDay, find, toArray')
+        console.log(err)
+        done({ error: 'Error on server, can\'t find.' })
+        return
+      }
+
+      let usersResult = {}
+      results.forEach(({ _id: fileName, users }) => {
+        Object.keys(users).forEach(userName => {
+          if (usersResult[userName]) {
+            usersResult[userName] = [...usersResult[userName], fileName]
+          } else {
+            usersResult[userName] = [fileName]
+          }
+        })
+      })
+
+      client.close()
+      done(Object.entries(usersResult).map(([userName, files ]) => ({ userName, files })))
+    })
+  })
+}
+
+const getConflictsForDay = ({ date }, response) => {
+  const done = data => response.json(data)
+  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+    if (err) {
+      console.log('Error on getConflictsForDay, connect to mongoClient')
+      console.log(err)
+      done({ error: 'Error on getConflictsForDay, connect to mongoClient' })
+      return
+    }
+    const dataBase = client.db(DB_NAME)
+    const collection = dataBase.collection(date)
+
+    collection.find().toArray((err, results) => {
+      if (err) {
+        console.log('Error on checkUsersForDay, find, toArray')
+        console.log(err)
+        done({ error: 'Error on server, can\'t find.' })
+        return
+      }
+
+      let usersResult = {}
+      results.forEach(({ _id: fileName, users }) => {
+        Object.keys(users).forEach(userName => {
+          if (usersResult[userName]) {
+            usersResult[userName] = [...usersResult[userName], fileName]
+          } else {
+            usersResult[userName] = [fileName]
+          }
+        })
+      })
+
+      let storage = Object.entries(usersResult).reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: { paths: value }
+      }), {})
+
+      let conflicts = getConflictsHelper(Object.entries(storage))
+
+      client.close()
+      done({ conflicts })
+    })
+  })
+}
+
 module.exports = {
   addFiles,
   checkFileForDay,
+  checkUsersForDay,
+  getConflictsForDay,
 }
