@@ -1,6 +1,6 @@
 {
   "name": "conflict-manager-server",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "git conflict manager server",
   "main": "index.js",
   "scripts": {

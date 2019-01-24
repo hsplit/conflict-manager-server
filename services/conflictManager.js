@@ -22,11 +22,10 @@ const getConflictsForUser = ({ files, user }, done) => {
   let filePaths = files.map(({ path }) => path)
   mongoDB.addFiles({ files: filePaths, user })
 
-  _storage.delete(user)
-
-  master.getConflictsForUser({ files, user, filePaths, entries: [..._storage.entries()] }, done)
-
   _storage.set(user, { lastUpdate: Date.now(), paths: filePaths })
+
+  let entries = [..._storage.entries()].filter(([userKey]) => userKey !== user )
+  master.getConflictsForUser({ files, user, filePaths, entries }, done)
 }
 
 const getConflicts = () => getConflictsHelper([..._storage.entries()])
