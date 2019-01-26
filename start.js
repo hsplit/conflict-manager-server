@@ -7,13 +7,14 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const opn = require('opn')
 
+require('./services/chat')(port + 105)
+
 const api = require('./api')
 
 const app = express()
 const jsonParser = bodyParser.json()
 
 // app.use(cors())
-// TODO: chat sockets
 
 app.use(express.static(__dirname + '/public'))
 app.get('/favicon.ico', (request, response) => response.end(''))
