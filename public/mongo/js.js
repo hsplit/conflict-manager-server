@@ -37,7 +37,7 @@ const getCurrentDate = () => {
   }
 }
 
-const errorHanlder = data => {
+const errorHandler = data => {
   if (data.error) {
     throw new Error(data.error)
   }
@@ -60,7 +60,7 @@ const checkFileForDay = () => {
   let date = HTML.fileDate.value
   let data = getPostData({ file, date })
   HTML.fileAnswer.innerHTML = 'Loading...'
-  fetch(API_REQUESTS.checkFileForDay, data).then(response => response.json()).then(errorHanlder).then(data => {
+  fetch(API_REQUESTS.checkFileForDay, data).then(response => response.json()).then(errorHandler).then(data => {
     let now = getCurrentDate().time
     let filePath = 'Last update: ' + now + '<br><br>File: \'' + file + '\'.<br>'
     let dateInfo = 'For: ' + date + '.<br><br>'
@@ -87,7 +87,7 @@ const checkUsersForDay = () => {
   let date = HTML.usersForDateInput.value
   let data = getPostData({ date })
   HTML.usersForDateAnswer.innerHTML = 'Loading...'
-  fetch(API_REQUESTS.checkUsersForDay, data).then(response => response.json()).then(errorHanlder).then(data => {
+  fetch(API_REQUESTS.checkUsersForDay, data).then(response => response.json()).then(errorHandler).then(data => {
     let now = getCurrentDate().time
     let dateInfo = 'Last update: ' + now + '<br><br>For: ' + date + '.<br><br>'
     if (!data.length) {
@@ -153,7 +153,7 @@ const getConflictsForDate = () => {
   let date = HTML.conflictsForDateInput.value
   let data = getPostData({ date })
   HTML.conflictsForDateAnswer.innerHTML = 'Loading...'
-  fetch(API_REQUESTS.getConflictsForDay, data).then(response => response.json()).then(errorHanlder).then(data => {
+  fetch(API_REQUESTS.getConflictsForDay, data).then(response => response.json()).then(errorHandler).then(data => {
     let now = getCurrentDate().time
     let dateInfo = 'Last update: ' + now + '<br><br>For: ' + date + '.<br>'
     const { conflicts } = data

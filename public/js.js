@@ -17,7 +17,7 @@ const showError = message => {
   HTML.longPollStatus.innerHTML = message
 }
 
-const errorHanlder = data => {
+const errorHandler = data => {
   if (data.error) {
     showError(data.error)
     throw new Error(data.error)
@@ -78,7 +78,7 @@ const getTableConflictsHTML = conflicts => {
 }
 
 const getCurrentConflicts = initialMessage => {
-  fetch(API_REQUESTS.getConflicts).then(response => response.json()).then(errorHanlder).then(data => {
+  fetch(API_REQUESTS.getConflicts).then(response => response.json()).then(errorHandler).then(data => {
     if (initialMessage) { HTML.longPollStatus.innerText = initialMessage }
     const { conflicts } = data
 
@@ -102,7 +102,7 @@ const getUsersFiles = () => {
     HTML.usersFiles.innerHTML = ''
   }
 
-  fetch(API_REQUESTS.getUsersFiles).then(response => response.json()).then(errorHanlder).then(data => {
+  fetch(API_REQUESTS.getUsersFiles).then(response => response.json()).then(errorHandler).then(data => {
     const { usersFiles } = data
     const getHTMLString = ({ userName, files }) => `<div><b>${userName}:</b><p>` + files.join('<br>') + '</p></div>'
 
