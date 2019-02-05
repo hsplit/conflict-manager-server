@@ -6,10 +6,11 @@ const express = require('express')
 // const cors = require('cors')
 const bodyParser = require('body-parser')
 const opn = require('opn')
+require('./config/srcRequire')
 
-require('./services/chat')(port + 105)
+srcRequire('services/chat')(port + 105)
 
-const api = require('./api')
+const api = srcRequire('api')
 
 const app = express()
 const jsonParser = bodyParser.json()

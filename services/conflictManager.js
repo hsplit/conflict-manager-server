@@ -1,9 +1,9 @@
-const mongoDB = require('./mongoDB')
+const { OUTDATED_TIME } = srcRequire('constants')
 
-const getConflictsHelper = require('../helpers/getConflicts')
-const master = require('./master')
+const getConflictsHelper = srcRequire('helpers/getConflicts')
 
-const { OUTDATED_TIME } = require('../constants')
+const mongoDB = srcRequire('services/mongoDB')
+const master = srcRequire('services/master')
 
 const _storage = new Map()
 

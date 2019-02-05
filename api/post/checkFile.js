@@ -1,4 +1,4 @@
-const conflictManager = require('../../services/conflictManager')
+const conflictManager = srcRequire('services/conflictManager')
 
 module.exports = (request, response) => {
   const files = conflictManager.checkFile(request.body)

@@ -1,5 +1,5 @@
-const getConflictsHelper = require('../helpers/getConflicts')
-const getCurrentDate = require('../helpers/date').getCurrentDate
+const getConflictsHelper = srcRequire('helpers/getConflicts')
+const getCurrentDate = srcRequire('helpers/date').getCurrentDate
 const mongoClient = require('mongodb').MongoClient
 
 const MONGODB_URL = 'mongodb://localhost:27017/'

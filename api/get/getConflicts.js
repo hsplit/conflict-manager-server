@@ -1,6 +1,6 @@
-const { LONG_POLL_DELAY } = require('../../constants')
+const { LONG_POLL_DELAY } = srcRequire('constants')
 
-const conflictManager = require('../../services/conflictManager')
+const conflictManager = srcRequire('services/conflictManager')
 
 let _firstResponse = true
 
