@@ -3,6 +3,7 @@ const API_REQUESTS = {
   checkFileForDay: `${API}/checkfileforday`,
   checkUsersForDay: `${API}/checkusersforday`,
   getConflictsForDay: `${API}/getconflictsforday`,
+  getConflictsForDateRange: `${API}/getconflictsfordaterange`,
 }
 
 const HTML = {
@@ -16,6 +17,10 @@ const HTML = {
   conflictsForDateBtn,
   conflictsForDateInput,
   conflictsForDateAnswer,
+  conflictsForDateInputFrom,
+  conflictsForDateInputTo,
+  conflictsForDateRangeBtn,
+  conflictsForDateRangeAnswer,
 }
 
 const getPostData = data => ({
@@ -168,13 +173,40 @@ const getConflictsForDate = () => {
   }).catch(err => HTML.conflictsForDateAnswer.innerHTML = 'Error: ' + err)
 }
 
+const getConflictsForDateRange = () => {
+  if (!HTML.conflictsForDateInputFrom.value || !HTML.conflictsForDateInputTo.value
+    || HTML.conflictsForDateInputFrom.valueAsNumber > HTML.conflictsForDateInputTo.valueAsNumber) {
+    HTML.conflictsForDateRangeAnswer.innerHTML = 'Date should be correct.'
+    return
+  }
+
+  let fromV = HTML.conflictsForDateInputFrom.value
+  let from = HTML.conflictsForDateInputFrom.valueAsNumber
+  let toV = HTML.conflictsForDateInputTo.value
+  let to = HTML.conflictsForDateInputTo.valueAsNumber
+  let data = getPostData({ from, to })
+  HTML.conflictsForDateRangeAnswer.innerHTML = 'Loading...'
+  fetch(API_REQUESTS.getConflictsForDateRange, data).then(response => response.json()).then(errorHandler).then(data => {
+    let now = getCurrentDate().time
+    let dateInfo = `Last update: ${now}<br><br>From: ${fromV} / To: ${toV}.<br>`
+    const { conflicts } = data
+
+    HTML.conflictsForDateRangeAnswer.innerHTML = dateInfo + (conflicts.length < 2
+      ? `<p>Have no found conflicts</p>`
+      : '<br>' + getTableConflictsHTML(conflicts))
+  }).catch(err => HTML.conflictsForDateRangeAnswer.innerHTML = 'Error: ' + err)
+}
+
 HTML.chooseFileBtn.addEventListener('click', checkFileForDay)
 HTML.fileInput.addEventListener('keydown', e => e.key === 'Enter' && checkFileForDay())
 
 HTML.usersForDateBtn.addEventListener('click', checkUsersForDay)
 HTML.conflictsForDateBtn.addEventListener('click', getConflictsForDate)
+HTML.conflictsForDateRangeBtn.addEventListener('click', getConflictsForDateRange)
 
 let currentDate = getCurrentDate().date
 HTML.fileDate.value = currentDate
 HTML.usersForDateInput.value = currentDate
 HTML.conflictsForDateInput.value = currentDate
+HTML.conflictsForDateInputFrom.value = currentDate
+HTML.conflictsForDateInputTo.value = currentDate

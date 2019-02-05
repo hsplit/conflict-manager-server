@@ -1,5 +1,6 @@
 const getConflictsHelper = srcRequire('helpers/getConflicts')
 const getCurrentDate = srcRequire('helpers/date').getCurrentDate
+const getArrayOfDates = srcRequire('helpers/date').getArrayOfDates
 const mongoClient = require('mongodb').MongoClient
 
 const MONGODB_URL = 'mongodb://localhost:27017/'
@@ -187,9 +188,79 @@ const getConflictsForDay = ({ date }, response) => {
   })
 }
 
+const getConflictsForDateRange = ({ from, to }, response) => {
+  const done = data => response.json(data)
+  if (from === to) {
+    getConflictsForDay({ date:  getCurrentDate(from).date }, response)
+    return
+  }
+
+  let collections = getArrayOfDates({ from, to })
+
+  let usersResult = {}
+
+  let doneCount = collections.length
+  let doneAlready = 0
+  const doneStep = ({ error, client }) => {
+    if (error) {
+      client.close()
+      done({ error })
+      return
+    }
+    doneAlready++
+    if (doneAlready === doneCount) {
+      client.close()
+
+      let storage = Object.entries(usersResult).reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: { paths: value }
+      }), {})
+
+      let conflicts = getConflictsHelper(Object.entries(storage))
+
+      client.close()
+      done({ conflicts })
+    }
+  }
+
+  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+    if (err) {
+      console.log('Error on getConflictsForDateRange, connect to mongoClient')
+      console.log(err)
+      doneStep({ error: 'Error on getConflictsForDateRange, connect to mongoClient', client })
+      return
+    }
+    const dataBase = client.db(DB_NAME)
+
+    collections.forEach(date => {
+      const collection = dataBase.collection(date)
+
+      collection.find().toArray((err, results) => {
+        if (err) {
+          console.log('Error on getConflictsForDateRange, find, toArray')
+          console.log(err)
+          doneStep({ error: 'Error on server, can\'t find.', client })
+          return
+        }
+        results.forEach(({ _id: fileName, users }) => {
+          Object.keys(users).forEach(userName => {
+            if (usersResult[userName]) {
+              usersResult[userName] = [...usersResult[userName], fileName]
+            } else {
+              usersResult[userName] = [fileName]
+            }
+          })
+        })
+        doneStep({ client })
+      })
+    })
+  })
+}
+
 module.exports = {
   addFiles,
   checkFileForDay,
   checkUsersForDay,
   getConflictsForDay,
+  getConflictsForDateRange,
 }

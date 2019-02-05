@@ -30,6 +30,7 @@ app.post('/checkfile', jsonParser, api.post.checkFile)
 app.post('/checkfileforday', jsonParser, api.post.checkFileForDay)
 app.post('/checkusersforday', jsonParser, api.post.checkUsersForDay)
 app.post('/getconflictsforday', jsonParser, api.post.getConflictsForDay)
+app.post('/getconflictsfordaterange', jsonParser, api.post.getConflictsForDateRange)
 
 // 404
 app.use((request, response) => response.send(
