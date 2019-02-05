@@ -41,12 +41,16 @@ const getTableConflictsHTML = conflicts => {
 
   const getFirstRow = () => {
     let names = conflicts.map(({ userName }) => userName )
+    names.pop()
     return '<div class="table-row">' + getEmptyCell() + names.map(getNameCell).join('') + '</div>'
   }
 
   const getConflictCell = paths => {
     if (!paths) {
       return getEmptyCell()
+    }
+    if (!paths.length) {
+      return '<div class="table-cell cell-no-conflicts"></div>'
     }
     const gitFileName = path => path.split('\\').reverse()[0]
     return '<div class="table-cell conflict-cell">' + paths.map(gitFileName).join('<br><br>') + '</div>'
@@ -55,7 +59,7 @@ const getTableConflictsHTML = conflicts => {
   const getRow = n => {
     let nameCell = getNameCell(conflicts[n].userName)
     let cells = ''
-    for (let i = 0; i < conflicts.length; i++) {
+    for (let i = 0; i < conflicts.length - 1; i++) {
       cells += getConflictCell(conflicts[n].conflictsWithOther[i])
     }
     return '<div class="table-row">' + nameCell + cells + '</div>'

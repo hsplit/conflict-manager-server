@@ -70,3 +70,6 @@ section:first-of-type {
   padding: 10px;
   word-break: break-all;
 }
+.cell-no-conflicts {
+  background: linear-gradient(to left, #bdc3c7, #2c3e50);
+}
