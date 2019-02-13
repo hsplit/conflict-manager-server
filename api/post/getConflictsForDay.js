@@ -1,4 +1,4 @@
-const mongoDB = srcRequire('services/mongoDB')
+const mongoDB = require('services/mongoDB')
 
 module.exports = (request, response) => {
   mongoDB.getConflictsForDay(request.body, response)

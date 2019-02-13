@@ -1,6 +1,6 @@
-const getConflictsHelper = srcRequire('helpers/getConflicts')
-const getCurrentDate = srcRequire('helpers/date').getCurrentDate
-const getArrayOfDates = srcRequire('helpers/date').getArrayOfDates
+const getConflictsHelper = require('helpers/getConflicts')
+const getCurrentDate = require('helpers/date').getCurrentDate
+const getArrayOfDates = require('helpers/date').getArrayOfDates
 const mongoClient = require('mongodb').MongoClient
 
 const MONGODB_URL = 'mongodb://localhost:27017/'

@@ -1,4 +1,4 @@
-const getCurrentDate = srcRequire('helpers/date').getCurrentDate
+const getCurrentDate = require('helpers/date').getCurrentDate
 const WebSocket = require('ws')
 
 const start = port => {

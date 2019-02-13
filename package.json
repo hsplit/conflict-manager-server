@@ -1,6 +1,6 @@
 {
   "name": "conflict-manager-server",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "git conflict manager server",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "minimist": "^1.2.0",
+    "module-alias": "^2.2.0",
     "mongodb": "^3.1.12",
     "opn": "^5.4.0",
     "ws": "^6.1.3"
