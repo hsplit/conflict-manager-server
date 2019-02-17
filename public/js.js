@@ -2,7 +2,7 @@ const API = window.origin || 'http://localhost:5010'
 const API_REQUESTS = {
   getConflicts: `${API}/current/getconflicts`,
   getUsersFiles: `${API}/current/getusersfiles`,
-  // TODO: all files with filter
+  getWorkingFiles: `${API}/current/getworkingfiles`,
 }
 
 const HTML = [
@@ -11,7 +11,19 @@ const HTML = [
   'getUsersFilesBtn',
   'usersFilesTime',
   'usersFiles',
+  'getWorkingFiles',
+  'getWorkingFilesTime',
+  'workingFiles',
 ].reduce((acc, id) => (acc[id] = document.querySelector(`#${id}`)) && acc, {})
+
+const getPostData = data => ({
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(data)
+})
 
 const showError = message => {
   HTML.conflictsTable.innerHTML = 'Disconnected'
@@ -101,13 +113,19 @@ const getCurrentConflicts = isInit => {
 }
 
 const getUsersFiles = () => {
-  const errorFiles = () => {
-    HTML.usersFilesTime.innerText = 'Lost connection'
-    HTML.usersFiles.innerHTML = ''
+  const errorFiles = error => {
+    HTML.usersFilesTime.innerText = 'Error'
+    HTML.usersFiles.innerHTML = error
   }
 
-  fetch(API_REQUESTS.getUsersFiles).then(response => response.json()).then(errorHandler).then(data => {
-    const { usersFiles } = data
+  fetch(API_REQUESTS.getUsersFiles).then(response => response.json()).then(data => {
+    const { usersFiles, error } = data
+
+    if (error) {
+      errorFiles(error)
+      return
+    }
+
     const getHTMLString = ({ userName, files }) => `<div><b>${userName}:</b><p>` + files.join('<br>') + '</p></div>'
 
     HTML.usersFilesTime.innerText = 'Last update: ' + getCurrentTime()
@@ -122,6 +140,38 @@ const connectToServer = () => {
   getCurrentConflicts(true)
 }
 
+const getWorkingFiles = e => {
+  if (e.key !== 'Enter') {
+    return
+  }
+  const handleError = () => {
+    HTML.getWorkingFilesTime.innerText = 'Error'
+    HTML.workingFiles.innerHTML = ''
+    HTML.getWorkingFiles.addEventListener('keydown', getWorkingFiles)
+  }
+
+  HTML.getWorkingFilesTime.innerText = 'Loading...'
+  HTML.getWorkingFiles.removeEventListener('keydown', getWorkingFiles)
+  const data = getPostData({ search: e.target.value })
+  fetch(API_REQUESTS.getWorkingFiles, data).then(response => response.json()).then(data => {
+    const { files, error } = data
+
+    if (error) {
+      handleError(error)
+      return
+    }
+
+    const getHTMLString = ({ fileName, users }) => `<div><i>${fileName}:</i><p>` + users.join(', ') + '</p></div>'
+
+    HTML.getWorkingFiles.addEventListener('keydown', getWorkingFiles)
+    HTML.getWorkingFilesTime.innerText = 'Last update: ' + getCurrentTime()
+    HTML.workingFiles.innerHTML = '<br>' + (files.length
+      ? files.map(getHTMLString).join('')
+      : 'Have no found files')
+  }).catch(err => console.warn('getWorkingFiles', err) || handleError(err))
+}
+
 HTML.getUsersFilesBtn.addEventListener('click', getUsersFiles)
+HTML.getWorkingFiles.addEventListener('keydown', getWorkingFiles)
 
 connectToServer()

@@ -2,6 +2,7 @@ const _isEqual = require('lodash/isEqual')
 const { OUTDATED_TIME, POOLING_INTERVAL } = require('core/constants')
 
 const getConflictsHelper = require('helpers/getConflicts')
+const getCurrentDate = require('helpers/date').getCurrentDate
 
 const mongoDB = require('services/mongoDB')
 const master = require('services/master')
@@ -18,6 +19,18 @@ const _relevantDataObserver = () => {
 }
 
 setInterval(_relevantDataObserver, OUTDATED_TIME)
+
+const getWorkingFiles = search =>
+  Object.entries(([..._storage.entries()]).reduce((acc, [user, { paths, lastUpdate }]) => {
+    const [userName] = user.split('#')
+    paths.forEach(path => {
+      if (path.toLowerCase().includes(search.toLocaleString())) {
+        if (!acc[path]) { acc[path] = [] }
+        acc[path].push(`${userName}[${getCurrentDate(lastUpdate).time}]`)
+      }
+    })
+    return acc
+  }, {})).map(([fileName, users]) => ({ fileName, users }))
 
 const getConflictsForUser = ({ files, user }, done) => {
   let filePaths = files.map(({ path }) => path)
@@ -77,4 +90,5 @@ module.exports = {
   getConflicts,
   getUsersFiles,
   checkFile,
+  getWorkingFiles,
 }
