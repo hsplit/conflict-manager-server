@@ -2,6 +2,7 @@ const API = window.origin || 'http://localhost:5010'
 const API_REQUESTS = {
   checkFileForDay: `${API}/mongodb/checkfileforday`,
   checkUsersForDay: `${API}/mongodb/checkusersforday`,
+  checkUsersForDateRange: `${API}/mongodb/checkusersfordaterange`,
   getConflictsForDay: `${API}/mongodb/getconflictsforday`,
   getConflictsForDateRange: `${API}/mongodb/getconflictsfordaterange`,
 }
@@ -21,6 +22,10 @@ const HTML = [
   'conflictsForDateInputTo',
   'conflictsForDateRangeBtn',
   'conflictsForDateRangeAnswer',
+  'usersForDateBtnRange',
+  'usersForDateInputFrom',
+  'usersForDateInputTo',
+  'usersForDateAnswerRange',
 ].reduce((acc, id) => (acc[id] = document.querySelector(`#${id}`)) && acc, {})
 
 const getPostData = data => ({
@@ -77,17 +82,17 @@ const checkFileForDay = () => {
   }).catch(err => HTML.fileAnswer.innerHTML = 'Error: ' + err)
 }
 
+const getFilesHTML = data => data.map(({ userName, files }) => {
+  let fileNameHTML = `<i>${userName}:</i><br>`
+  let usersHTML = `<p>${files.join('<br>')}</p>`
+  return fileNameHTML + usersHTML
+}).join('')
+
 const checkUsersForDay = () => {
   if (!HTML.usersForDateInput.value) {
     HTML.usersForDateAnswer.innerHTML = 'Date should be correct.'
     return
   }
-
-  const getFilesHTML = data => data.map(({ userName, files }) => {
-    let fileNameHTML = `<i>${userName}:</i><br>`
-    let usersHTML = `<p>${files.join('<br>')}</p>`
-    return fileNameHTML + usersHTML
-  }).join('')
 
   let date = HTML.usersForDateInput.value
   let data = getPostData({ date })
@@ -101,6 +106,30 @@ const checkUsersForDay = () => {
       HTML.usersForDateAnswer.innerHTML = dateInfo + getFilesHTML(data)
     }
   }).catch(err => HTML.usersForDateAnswer.innerHTML = 'Error: ' + err)
+}
+
+const checkUsersForDateRange = () => {
+  if (!HTML.usersForDateInputFrom.value || !HTML.usersForDateInputTo.value
+    || HTML.usersForDateInputFrom.valueAsNumber > HTML.usersForDateInputTo.valueAsNumber) {
+    HTML.usersForDateAnswerRange.innerHTML = 'Date should be correct.'
+    return
+  }
+
+  let fromV = HTML.usersForDateInputFrom.value
+  let from = HTML.usersForDateInputFrom.valueAsNumber
+  let toV = HTML.usersForDateInputTo.value
+  let to = HTML.usersForDateInputTo.valueAsNumber
+  let data = getPostData({ from, to })
+  HTML.usersForDateAnswerRange.innerHTML = 'Loading...'
+  fetch(API_REQUESTS.checkUsersForDateRange, data).then(response => response.json()).then(errorHandler).then(data => {
+    let now = getCurrentDate().time
+    let dateInfo = `Last update: ${now}<br><br>From: ${fromV} / To: ${toV}.<br><br>`
+    if (!data.length) {
+      HTML.usersForDateAnswerRange.innerHTML = dateInfo + 'Have no users\' files.'
+    } else {
+      HTML.usersForDateAnswerRange.innerHTML = dateInfo + getFilesHTML(data)
+    }
+  }).catch(err => HTML.usersForDateAnswerRange.innerHTML = 'Error: ' + err)
 }
 
 const getTableConflictsHTML = conflicts => {
@@ -201,12 +230,17 @@ HTML.chooseFileBtn.addEventListener('click', checkFileForDay)
 HTML.fileInput.addEventListener('keydown', e => e.key === 'Enter' && checkFileForDay())
 
 HTML.usersForDateBtn.addEventListener('click', checkUsersForDay)
+HTML.usersForDateBtnRange.addEventListener('click', checkUsersForDateRange)
 HTML.conflictsForDateBtn.addEventListener('click', getConflictsForDate)
 HTML.conflictsForDateRangeBtn.addEventListener('click', getConflictsForDateRange)
 
 let currentDate = getCurrentDate().date
-HTML.fileDate.value = currentDate
-HTML.usersForDateInput.value = currentDate
-HTML.conflictsForDateInput.value = currentDate
-HTML.conflictsForDateInputFrom.value = currentDate
-HTML.conflictsForDateInputTo.value = currentDate
+void [
+  'fileDate',
+  'usersForDateInput',
+  'conflictsForDateInput',
+  'conflictsForDateInputFrom',
+  'conflictsForDateInputTo',
+  'usersForDateInputFrom',
+  'usersForDateInputTo',
+].forEach(el => HTML[el].value = currentDate)

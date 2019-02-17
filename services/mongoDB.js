@@ -28,6 +28,23 @@ const _errorHandlers = {
   })
 }
 
+const _filesToUsers = (usersResult, results) => {
+  results.forEach(({ _id: fileName, users }) => {
+    Object.keys(users).forEach(userName => {
+      if (usersResult[userName]) {
+        if (!(usersResult[userName].indexOf(fileName) + 1)) {
+          usersResult[userName] = [...usersResult[userName], fileName]
+        }
+      } else {
+        usersResult[userName] = [fileName]
+      }
+    })
+  })
+}
+
+const _filesToUsersToArray = usersResult =>
+  Object.entries(usersResult).map(([userName, files]) => ({ userName, files }))
+
 const addFiles = ({ files, user }) => {
   let [userName] = user.split('#')
 
@@ -130,18 +147,60 @@ const checkUsersForDay = ({ date }, done) => {
       }
 
       let usersResult = {}
-      results.forEach(({ _id: fileName, users }) => {
-        Object.keys(users).forEach(userName => {
-          if (usersResult[userName]) {
-            usersResult[userName] = [...usersResult[userName], fileName]
-          } else {
-            usersResult[userName] = [fileName]
-          }
-        })
-      })
+      _filesToUsers(usersResult, results)
 
       client.close()
-      done(Object.entries(usersResult).map(([userName, files ]) => ({ userName, files })))
+      done(_filesToUsersToArray(usersResult))
+    })
+  })
+}
+
+const checkUsersForDateRange = ({ from, to }, done) => {
+  if (from === to) {
+    checkUsersForDay({ date:  getCurrentDate(from).date }, done)
+    return
+  }
+
+  let collections = getArrayOfDates({ from, to })
+
+  let usersResult = {}
+
+  let doneCount = collections.length
+  let doneAlready = 0
+  const doneStep = ({ error, client }) => {
+    if (error) {
+      client.close()
+      done({ error })
+      return
+    }
+    doneAlready++
+    if (doneAlready === doneCount) {
+      client.close()
+      done(_filesToUsersToArray(usersResult))
+    }
+  }
+
+  _connectDB((err, client) => {
+    if (err) {
+      _errorHandlers.connect({ method: 'checkUsersForDateRange', err })
+      doneStep({ error: 'Error on checkUsersForDateRange, connect to mongoClient', client })
+      return
+    }
+    const dataBase = _getDB(client)
+
+    collections.forEach(date => {
+      const collection = _getCollectionFromDB(dataBase, date)
+
+      collection.find().toArray((err, results) => {
+        if (err) {
+          _errorHandlers.find({ method: 'checkUsersForDateRange', err })
+          doneStep({ error: 'Error on server, can\'t find.', client })
+          return
+        }
+
+        _filesToUsers(usersResult, results)
+        doneStep({ client })
+      })
     })
   })
 }
@@ -205,8 +264,6 @@ const getConflictsForDateRange = ({ from, to }, done) => {
     }
     doneAlready++
     if (doneAlready === doneCount) {
-      client.close()
-
       let storage = Object.entries(usersResult).reduce((acc, [key, value]) => ({
         ...acc,
         [key]: { paths: value }
@@ -236,15 +293,8 @@ const getConflictsForDateRange = ({ from, to }, done) => {
           doneStep({ error: 'Error on server, can\'t find.', client })
           return
         }
-        results.forEach(({ _id: fileName, users }) => {
-          Object.keys(users).forEach(userName => {
-            if (usersResult[userName]) {
-              usersResult[userName] = [...usersResult[userName], fileName]
-            } else {
-              usersResult[userName] = [fileName]
-            }
-          })
-        })
+
+        _filesToUsers(usersResult, results)
         doneStep({ client })
       })
     })
@@ -255,6 +305,7 @@ module.exports = {
   addFiles,
   checkFileForDay,
   checkUsersForDay,
+  checkUsersForDateRange,
   getConflictsForDay,
   getConflictsForDateRange,
 }
