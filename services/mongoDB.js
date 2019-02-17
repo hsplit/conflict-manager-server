@@ -7,8 +7,8 @@ const MONGODB_URL = 'mongodb://localhost:27017/'
 const DB_NAME = 'ConflictManagerDB'
 
 const _connectDB = callBack => mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, callBack)
-const _getCollectionFromDB = (db, collectionName) => db.collection(collectionName)
 const _getDB = client => client.db(DB_NAME)
+const _getCollectionFromDB = (db, collectionName) => db.collection(collectionName)
 const _getCollection = (client, collectionName) => _getCollectionFromDB(_getDB(client), collectionName)
 
 const _errorHandler = ({ message, err, done, doneData }) => {
@@ -42,7 +42,7 @@ const _filesToUsers = (usersResult, results) => {
   })
 }
 
-const _filesToUsersToArray = usersResult =>
+const _filesUsersToArray = usersResult =>
   Object.entries(usersResult).map(([userName, files]) => ({ userName, files }))
 
 const addFiles = ({ files, user }) => {
@@ -150,7 +150,7 @@ const checkUsersForDay = ({ date }, done) => {
       _filesToUsers(usersResult, results)
 
       client.close()
-      done(_filesToUsersToArray(usersResult))
+      done(_filesUsersToArray(usersResult))
     })
   })
 }
@@ -176,7 +176,7 @@ const checkUsersForDateRange = ({ from, to }, done) => {
     doneAlready++
     if (doneAlready === doneCount) {
       client.close()
-      done(_filesToUsersToArray(usersResult))
+      done(_filesUsersToArray(usersResult))
     }
   }
 
@@ -221,15 +221,7 @@ const getConflictsForDay = ({ date }, done) => {
       }
 
       let usersResult = {}
-      results.forEach(({ _id: fileName, users }) => {
-        Object.keys(users).forEach(userName => {
-          if (usersResult[userName]) {
-            usersResult[userName] = [...usersResult[userName], fileName]
-          } else {
-            usersResult[userName] = [fileName]
-          }
-        })
-      })
+      _filesToUsers(usersResult, results)
 
       let storage = Object.entries(usersResult).reduce((acc, [key, value]) => ({
         ...acc,
@@ -301,6 +293,71 @@ const getConflictsForDateRange = ({ from, to }, done) => {
   })
 }
 
+const getFilesForDateRange = ({ from, to, search }, done) => {
+  let collections = getArrayOfDates({ from, to })
+
+  let files = {}
+
+  let doneCount = collections.length
+  let doneAlready = 0
+  const doneStep = ({ error, client }) => {
+    if (error) {
+      client.close()
+      done({ error })
+      return
+    }
+    doneAlready++
+    if (doneAlready === doneCount) {
+      client.close()
+      const result = Object.entries(files).map(([fileName, users]) => ({
+        fileName,
+        users: Object.entries(users).map(([userName, date]) => userName + date)
+      }))
+      done({ files: result })
+    }
+  }
+
+  _connectDB((err, client) => {
+    if (err) {
+      _errorHandlers.connect({ method: 'getFilesForDateRange', err })
+      doneStep({ error: 'Error on getFilesForDateRange, connect to mongoClient', client })
+      return
+    }
+    const dataBase = _getDB(client)
+    let regex = new RegExp(`.*${search}.*`)
+
+    collections.forEach((date, i) => {
+      const collection = _getCollectionFromDB(dataBase, date)
+
+      collection.find({ _id:  regex }).toArray((err, results) => {
+        if (err) {
+          _errorHandlers.find({ method: 'getFilesForDateRange', err })
+          doneStep({ error: 'Error on server, can\'t find.', client })
+          return
+        }
+
+        results.forEach(({ _id: fileName, users }) => {
+          let usersWithDates = {}
+          Object.keys(users).forEach(key => {
+            usersWithDates[key] = `[${collections[i]} ${users[key].lastUpdate}]`
+          })
+
+          if (files[fileName]) {
+            files[fileName] = {
+              ...files[fileName],
+              ...usersWithDates,
+            }
+          } else {
+            files[fileName] = usersWithDates
+          }
+        })
+
+        doneStep({ client })
+      })
+    })
+  })
+}
+
 module.exports = {
   addFiles,
   checkFileForDay,
@@ -308,4 +365,5 @@ module.exports = {
   checkUsersForDateRange,
   getConflictsForDay,
   getConflictsForDateRange,
+  getFilesForDateRange,
 }

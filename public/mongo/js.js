@@ -5,6 +5,7 @@ const API_REQUESTS = {
   checkUsersForDateRange: `${API}/mongodb/checkusersfordaterange`,
   getConflictsForDay: `${API}/mongodb/getconflictsforday`,
   getConflictsForDateRange: `${API}/mongodb/getconflictsfordaterange`,
+  getFilesForDateRange: `${API}/mongodb/getfilesfordaterange`,
 }
 
 const HTML = [
@@ -26,6 +27,10 @@ const HTML = [
   'usersForDateInputFrom',
   'usersForDateInputTo',
   'usersForDateAnswerRange',
+  'filesForDateRange',
+  'filesForDateRangeFrom',
+  'filesForDateRangeTo',
+  'filesForDateRangeAnswer',
 ].reduce((acc, id) => (acc[id] = document.querySelector(`#${id}`)) && acc, {})
 
 const getPostData = data => ({
@@ -226,8 +231,44 @@ const getConflictsForDateRange = () => {
   }).catch(err => HTML.conflictsForDateRangeAnswer.innerHTML = 'Error: ' + err)
 }
 
+const getFilesForDateRange = () => {
+  if (!HTML.filesForDateRangeFrom.value || !HTML.filesForDateRangeTo.value
+    || HTML.filesForDateRangeFrom.valueAsNumber > HTML.filesForDateRangeTo.valueAsNumber) {
+    HTML.filesForDateRangeAnswer.innerHTML = 'Date should be correct.'
+    return
+  }
+
+  const getCurrentTime = () => {
+    let now = getCurrentDate().time
+    return `Last update: ${now}<br><br>`
+  }
+  const getHTMLString = ({ fileName, users }) => `<div><i>${fileName}:</i><p>` + users.join('<br>') + '</p></div>'
+
+  const handleError = error => {
+    console.warn('getWorkingFiles', error)
+    HTML.filesForDateRangeAnswer.innerHTML = error
+  }
+
+  let from = HTML.filesForDateRangeFrom.valueAsNumber
+  let to = HTML.filesForDateRangeTo.valueAsNumber
+  let search = HTML.filesForDateRange.value
+  let data = getPostData({ from, to, search })
+
+  HTML.filesForDateRangeAnswer.innerHTML = 'Loading...'
+
+  fetch(API_REQUESTS.getFilesForDateRange, data).then(response => response.json()).then(errorHandler).then(data => {
+    const { files } = data
+
+    console.log({ files, data })
+    HTML.filesForDateRangeAnswer.innerHTML = getCurrentTime() + (files.length
+      ? files.map(getHTMLString).join('')
+      : 'Have no found files')
+  }).catch(handleError)
+}
+
 HTML.chooseFileBtn.addEventListener('click', checkFileForDay)
 HTML.fileInput.addEventListener('keydown', e => e.key === 'Enter' && checkFileForDay())
+HTML.filesForDateRange.addEventListener('keydown', e => e.key === 'Enter' && getFilesForDateRange())
 
 HTML.usersForDateBtn.addEventListener('click', checkUsersForDay)
 HTML.usersForDateBtnRange.addEventListener('click', checkUsersForDateRange)
@@ -243,4 +284,6 @@ void [
   'conflictsForDateInputTo',
   'usersForDateInputFrom',
   'usersForDateInputTo',
+  'filesForDateRangeFrom',
+  'filesForDateRangeTo',
 ].forEach(el => HTML[el].value = currentDate)

@@ -3,6 +3,7 @@ const checkUsersForDay = require('./checkUsersForDay')
 const checkUsersForDateRange = require('./checkUsersForDateRange')
 const getConflictsForDay = require('./getConflictsForDay')
 const getConflictsForDateRange = require('./getConflictsForDateRange')
+const getFilesForDateRange = require('./getFilesForDateRange')
 
 module.exports = {
   checkFileForDay,
@@ -10,4 +11,5 @@ module.exports = {
   checkUsersForDateRange,
   getConflictsForDay,
   getConflictsForDateRange,
+  getFilesForDateRange,
 }

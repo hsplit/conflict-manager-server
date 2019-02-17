@@ -144,9 +144,9 @@ const getWorkingFiles = e => {
   if (e.key !== 'Enter') {
     return
   }
-  const handleError = () => {
+  const handleError = error => {
     HTML.getWorkingFilesTime.innerText = 'Error'
-    HTML.workingFiles.innerHTML = ''
+    HTML.workingFiles.innerHTML = error
     HTML.getWorkingFiles.addEventListener('keydown', getWorkingFiles)
   }
 
