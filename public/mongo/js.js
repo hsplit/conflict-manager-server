@@ -1,27 +1,27 @@
 const API = window.origin || 'http://localhost:5010'
 const API_REQUESTS = {
-  checkFileForDay: `${API}/checkfileforday`,
-  checkUsersForDay: `${API}/checkusersforday`,
-  getConflictsForDay: `${API}/getconflictsforday`,
-  getConflictsForDateRange: `${API}/getconflictsfordaterange`,
+  checkFileForDay: `${API}/mongodb/checkfileforday`,
+  checkUsersForDay: `${API}/mongodb/checkusersforday`,
+  getConflictsForDay: `${API}/mongodb/getconflictsforday`,
+  getConflictsForDateRange: `${API}/mongodb/getconflictsfordaterange`,
 }
 
-const HTML = {
-  chooseFileBtn,
-  fileInput,
-  fileDate,
-  fileAnswer,
-  usersForDateBtn,
-  usersForDateInput,
-  usersForDateAnswer,
-  conflictsForDateBtn,
-  conflictsForDateInput,
-  conflictsForDateAnswer,
-  conflictsForDateInputFrom,
-  conflictsForDateInputTo,
-  conflictsForDateRangeBtn,
-  conflictsForDateRangeAnswer,
-}
+const HTML = [
+  'chooseFileBtn',
+  'fileInput',
+  'fileDate',
+  'fileAnswer',
+  'usersForDateBtn',
+  'usersForDateInput',
+  'usersForDateAnswer',
+  'conflictsForDateBtn',
+  'conflictsForDateInput',
+  'conflictsForDateAnswer',
+  'conflictsForDateInputFrom',
+  'conflictsForDateInputTo',
+  'conflictsForDateRangeBtn',
+  'conflictsForDateRangeAnswer',
+].reduce((acc, id) => (acc[id] = document.querySelector(`#${id}`)) && acc, {})
 
 const getPostData = data => ({
   method: 'POST',

@@ -6,34 +6,60 @@ const mongoClient = require('mongodb').MongoClient
 const MONGODB_URL = 'mongodb://localhost:27017/'
 const DB_NAME = 'ConflictManagerDB'
 
+const _connectDB = callBack => mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, callBack)
+const _getCollectionFromDB = (db, collectionName) => db.collection(collectionName)
+const _getDB = client => client.db(DB_NAME)
+const _getCollection = (client, collectionName) => _getCollectionFromDB(_getDB(client), collectionName)
+
+const _errorHandler = ({ message, err, done, doneData }) => {
+  message && console.log(message)
+  err && console.log(err)
+  done && done(doneData || { error: message })
+}
+
+const _errorHandlers = {
+  connect: ({ method, err, done }) =>
+    _errorHandler({ message: `Error on ${method}, connect to mongoClient`, err, done }),
+  find: ({ method, err, done }) => _errorHandler({
+    message: `Error on ${method}, find, toArray`,
+    err,
+    done,
+    doneData: { error: 'Error on server, can\'t find.' },
+  })
+}
+
 const addFiles = ({ files, user }) => {
   let [userName] = user.split('#')
 
-  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+  _connectDB((err, client) => {
     if (err) {
-      console.log('Error on addFiles, connect to mongoClient')
-      console.log(err)
+      _errorHandlers.connect({ method: 'addFiles', err })
       return
     }
+
     const { date, time } = getCurrentDate()
-    const dataBase = client.db(DB_NAME)
-    const collection = dataBase.collection(date)
+    const collection = _getCollection(client, date)
 
     let doneCount = files.length
     let doneAlready = 0
+
     const done = () => {
       doneAlready++
       if (doneAlready === doneCount) {
         client.close()
       }
     }
+    const endOfOperationCreator = operation => err => {
+      // console.log('Updated', { path, userName })
+      // console.log('Inserted', result.ops)
+      done()
+      err && _errorHandler({ message: `Error on addFiles, findOne, ${operation}`, err })
+    }
 
     files.forEach(path => {
       collection.findOne({ _id: path }, (err, file) => {
         if (err) {
-          console.log('Error on addFiles, findOne')
-          console.log(err)
-          done()
+          _errorHandler({ message: 'Error on addFiles, findOne', err, done })
         } else if (file) {
           if (file.users) {
             file.users[userName] = { lastUpdate: time }
@@ -46,51 +72,32 @@ const addFiles = ({ files, user }) => {
           collection.updateOne(
             { _id: file._id },
             { $set: { users: file.users } },
-            (err) => {
-              if (err) {
-                console.log('Error on addFiles, findOne, updateOne')
-                console.log(err)
-                done()
-              } else {
-                // console.log('Updated', { path, userName })
-                done()
-              }
-            })
+            endOfOperationCreator('updateOne')
+          )
         } else {
-          collection.insertOne({ _id: path, users: { [userName]: { lastUpdate: time } } }, (err) => {
-            if (err) {
-              console.log('Error on addFiles, findOne, insertOne')
-              console.log(err)
-              done()
-            } else {
-              // console.log('Inserted', result.ops)
-              done()
-            }
-          })
+          collection.insertOne(
+            { _id: path, users: { [userName]: { lastUpdate: time } } },
+            endOfOperationCreator('insertOne')
+          )
         }
       })
     })
   })
 }
 
-const checkFileForDay = ({ file: endOfPath, date }, response) => {
-  const done = data => response.json(data)
-  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+const checkFileForDay = ({ file: endOfPath, date }, done) => {
+  _connectDB((err, client) => {
     if (err) {
-      console.log('Error on checkFileForDay, connect to mongoClient')
-      console.log(err)
-      done({ error: 'Error on checkFileForDay, connect to mongoClient' })
+      _errorHandlers.connect({ method: 'checkFileForDay', err, done })
       return
     }
-    const dataBase = client.db(DB_NAME)
-    const collection = dataBase.collection(date)
+
+    const collection = _getCollection(client, date)
 
     let regex = new RegExp(`${endOfPath}$`)
     collection.find({ _id: regex }).toArray((err, results) => {
       if (err) {
-        console.log('Error on checkFileForDay, find, toArray')
-        console.log(err)
-        done({ error: 'Error on server, can\'t find.' })
+        _errorHandlers.find({ method: 'checkFileForDay', err, done })
         return
       }
       let files = results.map(({ _id: fileName, users }) => {
@@ -107,23 +114,18 @@ const checkFileForDay = ({ file: endOfPath, date }, response) => {
   })
 }
 
-const checkUsersForDay = ({ date }, response) => {
-  const done = data => response.json(data)
-  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+const checkUsersForDay = ({ date }, done) => {
+  _connectDB((err, client) => {
     if (err) {
-      console.log('Error on checkUsersForDay, connect to mongoClient')
-      console.log(err)
-      done({ error: 'Error on checkUsersForDay, connect to mongoClient' })
+      _errorHandlers.connect({ method: 'checkUsersForDay', err, done })
       return
     }
-    const dataBase = client.db(DB_NAME)
-    const collection = dataBase.collection(date)
+
+    const collection = _getCollection(client, date)
 
     collection.find().toArray((err, results) => {
       if (err) {
-        console.log('Error on checkUsersForDay, find, toArray')
-        console.log(err)
-        done({ error: 'Error on server, can\'t find.' })
+        _errorHandlers.find({ method: 'checkUsersForDay', err, done })
         return
       }
 
@@ -144,23 +146,18 @@ const checkUsersForDay = ({ date }, response) => {
   })
 }
 
-const getConflictsForDay = ({ date }, response) => {
-  const done = data => response.json(data)
-  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+const getConflictsForDay = ({ date }, done) => {
+  _connectDB((err, client) => {
     if (err) {
-      console.log('Error on getConflictsForDay, connect to mongoClient')
-      console.log(err)
-      done({ error: 'Error on getConflictsForDay, connect to mongoClient' })
+      _errorHandlers.connect({ method: 'getConflictsForDay', err, done })
       return
     }
-    const dataBase = client.db(DB_NAME)
-    const collection = dataBase.collection(date)
+
+    const collection = _getCollection(client, date)
 
     collection.find().toArray((err, results) => {
       if (err) {
-        console.log('Error on checkUsersForDay, find, toArray')
-        console.log(err)
-        done({ error: 'Error on server, can\'t find.' })
+        _errorHandlers.find({ method: 'getConflictsForDay', err, done })
         return
       }
 
@@ -183,15 +180,14 @@ const getConflictsForDay = ({ date }, response) => {
       let conflicts = getConflictsHelper(Object.entries(storage))
 
       client.close()
-      done({ conflicts })
+      done(conflicts)
     })
   })
 }
 
-const getConflictsForDateRange = ({ from, to }, response) => {
-  const done = data => response.json(data)
+const getConflictsForDateRange = ({ from, to }, done) => {
   if (from === to) {
-    getConflictsForDay({ date:  getCurrentDate(from).date }, response)
+    getConflictsForDay({ date:  getCurrentDate(from).date }, done)
     return
   }
 
@@ -219,26 +215,24 @@ const getConflictsForDateRange = ({ from, to }, response) => {
       let conflicts = getConflictsHelper(Object.entries(storage))
 
       client.close()
-      done({ conflicts })
+      done(conflicts)
     }
   }
 
-  mongoClient.connect(MONGODB_URL, { useNewUrlParser: true }, (err, client) => {
+  _connectDB((err, client) => {
     if (err) {
-      console.log('Error on getConflictsForDateRange, connect to mongoClient')
-      console.log(err)
+      _errorHandlers.connect({ method: 'getConflictsForDateRange', err })
       doneStep({ error: 'Error on getConflictsForDateRange, connect to mongoClient', client })
       return
     }
-    const dataBase = client.db(DB_NAME)
+    const dataBase = _getDB(client)
 
     collections.forEach(date => {
-      const collection = dataBase.collection(date)
+      const collection = _getCollectionFromDB(dataBase, date)
 
       collection.find().toArray((err, results) => {
         if (err) {
-          console.log('Error on getConflictsForDateRange, find, toArray')
-          console.log(err)
+          _errorHandlers.find({ method: 'getConflictsForDateRange', err })
           doneStep({ error: 'Error on server, can\'t find.', client })
           return
         }

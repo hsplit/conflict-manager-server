@@ -1,5 +1,6 @@
 const mongoDB = require('services/mongoDB')
 
 module.exports = (request, response) => {
-  mongoDB.getConflictsForDateRange(request.body, response)
+  const done = data => response.json(data)
+  mongoDB.checkFileForDay(request.body, done)
 }

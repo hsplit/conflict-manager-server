@@ -1,4 +1,5 @@
-const { OUTDATED_TIME } = require('constants')
+const _isEqual = require('lodash/isEqual')
+const { OUTDATED_TIME, POOLING_INTERVAL } = require('core/constants')
 
 const getConflictsHelper = require('helpers/getConflicts')
 
@@ -28,7 +29,30 @@ const getConflictsForUser = ({ files, user }, done) => {
   master.getConflictsForUser({ files, user, filePaths, entries }, done)
 }
 
-const getConflicts = () => getConflictsHelper([..._storage.entries()])
+const _getConflicts = () => getConflictsHelper([..._storage.entries()])
+
+const _longPoll = done => {
+  let memo = _getConflicts()
+  let started = Date.now()
+  const dontLetDieRequestTime = 60000
+
+  const pooling = () => {
+    if (!_isEqual(memo, _getConflicts()) || (Date.now() - started > dontLetDieRequestTime)) {
+      done(_getConflicts())
+    } else {
+      setTimeout(pooling, POOLING_INTERVAL)
+    }
+  }
+  setTimeout(pooling, POOLING_INTERVAL)
+}
+
+const getConflicts = (isInit, done) => {
+  if (isInit === 'true') {
+    done(_getConflicts())
+  } else {
+    _longPoll(done)
+  }
+}
 
 const getUsersFiles = () => [..._storage.entries()].map(([user, { paths }]) => {
   const [userName] = user.split('#')

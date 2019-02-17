@@ -1,20 +1,21 @@
 const API = window.origin || 'http://localhost:5010'
 const API_REQUESTS = {
-  getConflicts: `${API}/getconflicts`,
-  getUsersFiles: `${API}/getusersfiles`,
+  getConflicts: `${API}/current/getconflicts`,
+  getUsersFiles: `${API}/current/getusersfiles`,
+  // TODO: all files with filter
 }
 
-const HTML = {
-  longPollStatus,
-  conflictsTable,
-  getUsersFilesBtn,
-  usersFilesTime,
-  usersFiles,
-}
+const HTML = [
+  'connectionStatus',
+  'conflictsTable',
+  'getUsersFilesBtn',
+  'usersFilesTime',
+  'usersFiles',
+].reduce((acc, id) => (acc[id] = document.querySelector(`#${id}`)) && acc, {})
 
 const showError = message => {
   HTML.conflictsTable.innerHTML = 'Disconnected'
-  HTML.longPollStatus.innerHTML = message
+  HTML.connectionStatus.innerHTML = message
 }
 
 const errorHandler = data => {
@@ -81,9 +82,9 @@ const getTableConflictsHTML = conflicts => {
   `
 }
 
-const getCurrentConflicts = initialMessage => {
-  fetch(API_REQUESTS.getConflicts).then(response => response.json()).then(errorHandler).then(data => {
-    if (initialMessage) { HTML.longPollStatus.innerText = initialMessage }
+const getCurrentConflicts = isInit => {
+  fetch(`${API_REQUESTS.getConflicts}/${isInit}`).then(response => response.json()).then(errorHandler).then(data => {
+    if (isInit) { HTML.connectionStatus.innerText = 'Connected' }
     const { conflicts } = data
 
     let timeInfo = 'Last update: ' + getCurrentTime() + '<br>'
@@ -92,12 +93,11 @@ const getCurrentConflicts = initialMessage => {
       : '<br>' + getTableConflictsHTML(conflicts))
 
     getCurrentConflicts()
-  }).catch(err => console.warn('getCurrentConflicts', err) || showError('Lost connection'))
-}
-
-const connectToServer = () => {
-  HTML.longPollStatus.innerText = 'Connecting...'
-  getCurrentConflicts('Connected')
+  }).catch(err => {
+    console.warn('getCurrentConflicts', err)
+    showError('Lost connection (reconnect after 5s)')
+    setTimeout(() => getCurrentConflicts(isInit), 5000)
+  })
 }
 
 const getUsersFiles = () => {
@@ -117,5 +117,11 @@ const getUsersFiles = () => {
   }).catch(err => console.warn('getCurrentConflicts', err) || errorFiles(err))
 }
 
+const connectToServer = () => {
+  HTML.connectionStatus.innerText = 'Connecting...'
+  getCurrentConflicts(true)
+}
+
 HTML.getUsersFilesBtn.addEventListener('click', getUsersFiles)
+
 connectToServer()

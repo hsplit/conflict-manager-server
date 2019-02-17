@@ -1,1 +1,2 @@
 require('./srcRequire')
+require('./jsonParser')

@@ -1,6 +1,6 @@
 const _getConflictedFiles = (ownFiles, arr) => arr.map(paths => paths.filter(path => ownFiles.includes(path)))
 
-const getConflicts = entries => entries.reduceRight(
+const getConflicts = entries => ({ conflicts: entries.reduceRight(
   (acc, [user, { paths }], i, arr) => {
     let userWithConflicts = {
       userName: user.split('#')[0],
@@ -8,6 +8,6 @@ const getConflicts = entries => entries.reduceRight(
     }
     return [userWithConflicts, ...acc]
   },
-  [])
+  []) })
 
 module.exports = getConflicts
