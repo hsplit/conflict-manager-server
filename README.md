@@ -9,3 +9,7 @@ Application to help your team prevent conflicts before commit.
 - Client–Server App (Server Side)
 - Sockets
 - DataBase - MongoDB
+
+#### Dependencies
+- Client: https://github.com/hsplit/conflict-manager-client
+- Mobile App: https://github.com/hsplit/conflict-manager-mobile-app
